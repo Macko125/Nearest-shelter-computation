@@ -7,14 +7,16 @@ using namespace std;
 int main()
 {
 	CNFGAlgorithm algo;
+	int vim, vert;
 	algo.readDataFromFile("test.txt");
 	algo.displayMatrix();
-	algo.dijkstra();
-	set <int> Rim;
-	set <int> Dim;
-	algo.DNVRF(5, &Rim, &Dim);
-
- 	cout << "hello world" << endl;
+	algo.initDijkstra();
+	cout << "enter vertex to damage" << endl;
+	cin >> vim;
+	algo.damageVertex(vim);
+	cout << "enter last vertex to display" << endl;
+	cin >> vert;
+	algo.displayPath(vert);
 	system("pause");
 	return 0;
 }

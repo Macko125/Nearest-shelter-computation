@@ -105,21 +105,19 @@ void CNFGAlgorithm::readDataFromFile(string filename)
 	file.close();
 }
 
-void CNFGAlgorithm::dijkstra()
+void CNFGAlgorithm::dijkstra(vector <int> root_vertices, map <int, NFG_Vertex> *nfg, bool recalculation)
 {
 	vector <int> Q; //vertex set
 	map <int, NFG_Vertex> nfg_map;
 	NFG_Vertex vert;
-	nfg_map = m_NFG;
-	map <int, bool> visited;
-	for (auto root_id : rootVertices)
+	nfg_map = *nfg;
+	for (auto root_id : root_vertices)
 	{
-		int root_id = rootVertices.back();
 		while (!nfg_map.empty())
 		{
 			int min = max_path_cost + 1;
 			int id = -1;
-			for (auto v : m_NFG) // find vertex with lowest cost
+			for (auto v : *nfg) // find vertex with lowest cost
 			{
 				if (v.second.fastest_path.path_cost < min && (nfg_map.find(v.second.ID) != nfg_map.end()))
 				{
@@ -127,24 +125,35 @@ void CNFGAlgorithm::dijkstra()
 					min = v.second.fastest_path.path_cost;
 				}    // Node with the least distance will be selected first		remove u from Q
 			}
-			vert = m_NFG[id];
+			vert = (*nfg)[id];
 			nfg_map.erase(id);
 	
 			for (auto neighbour : vert.neighbour)
 			{
 				int alt = vert.fastest_path.path_cost + neighbour.edge_cost;
-				if (alt < m_NFG[neighbour.id].fastest_path.path_cost)
+				if (nfg->find(neighbour.id) == (*nfg).end())
+					continue;
+
+				if (alt < (*nfg)[neighbour.id].fastest_path.path_cost)
 				{
-					m_NFG[neighbour.id].fastest_path.path_cost = alt;
-					m_NFG[neighbour.id].fastest_path.out_vertex = id;
-					m_NFG[id].fastest_path.in_vertices.push_back(neighbour.id);
-					m_NFG[id].fastest_path.root_id = root_id;
+					(*nfg)[neighbour.id].fastest_path.path_cost = alt;
+					(*nfg)[neighbour.id].fastest_path.out_vertex = id;
+					(*nfg)[id].fastest_path.in_vertices.push_back(neighbour.id);
+					if (!recalculation)
+						(*nfg)[id].fastest_path.root_id = root_id;
+					else
+						(*nfg)[id].fastest_path.root_id = (*nfg)[root_id].fastest_path.root_id;
 					if (id == root_id)
-						m_NFG[root_id].fastest_path.in_vertices.push_back(neighbour.id);
+						(*nfg)[root_id].fastest_path.in_vertices.push_back(neighbour.id);
 				}
 			}
 		}
 	}
+}
+
+void CNFGAlgorithm::initDijkstra()
+{
+	dijkstra(rootVertices, &m_NFG);
 }
 
 void CNFGAlgorithm::DNVRF(int vim_id, set<int> *Rim, set <int> *Dim)
@@ -179,5 +188,67 @@ void CNFGAlgorithm::DNVRF(int vim_id, set<int> *Rim, set <int> *Dim)
 			Rim->erase(id);
 		}
 	}
+	// delete connection between damaged vertex and neighbours
+	for (auto vertex : m_NFG)
+	{
+		sNeighbour temp(vim_id, max_path_cost);
+		vector <sNeighbour>::iterator iter = find(vertex.second.neighbour.begin(), vertex.second.neighbour.end(), temp);
+		if (iter != vertex.second.neighbour.end())
+			vertex.second.neighbour.erase(iter);
+	}
 }
 
+void CNFGAlgorithm::damageRangeReconstruction(set<int> *Rim, set <int> *Dim)
+{
+	//D - all vertices to init;
+	//roots - R;
+	//dijkstra on D map
+	map <int, NFG_Vertex> D_map;
+	for (auto vertex : *Dim)
+	{
+		D_map[vertex] = m_NFG[vertex];
+		D_map[vertex].fastest_path.in_vertices.clear();
+		//D_map[vertex].fastest_path.out_vertex = 0;
+		D_map[vertex].fastest_path.path_cost = max_path_cost;
+		D_map[vertex].fastest_path.root_id = 0;
+	}
+
+	vector <int> root_ids;
+	for (auto id : *Rim)
+	{
+		root_ids.push_back(id);
+		D_map[id] = m_NFG[id];
+	}
+
+	dijkstra(root_ids, &D_map, true);
+
+	for (auto id : D_map)
+	{
+		m_NFG[id.first] = id.second;
+	}
+}
+
+void CNFGAlgorithm::displayPath(int vertex_id)
+{
+	if (m_NFG.find(vertex_id) == m_NFG.end())
+	{
+		cout << "vertex number " << vertex_id << " not found" << endl;
+		return;
+	}
+	cout << "vertex number: " << vertex_id << " cost: " << m_NFG[vertex_id].fastest_path.path_cost << endl;
+	cout << "path : " << endl;
+	int id = m_NFG[vertex_id].fastest_path.out_vertex;
+	while (m_NFG[id].fastest_path.path_cost > 0)
+	{
+		cout << "vertex: " << id << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
+		id = m_NFG[id].fastest_path.out_vertex;
+	}
+	cout << "target " << id << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
+}
+void CNFGAlgorithm::damageVertex(int vim)
+{
+	set <int> Rim;
+	set <int> Dim;
+	DNVRF(vim, &Rim, &Dim);
+	damageRangeReconstruction(&Rim, &Dim);
+}

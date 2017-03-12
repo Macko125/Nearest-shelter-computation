@@ -12,6 +12,14 @@ struct sNeighbour
 		id(id),
 		edge_cost (edge_cost)
 	{}
+	//operator == check if ids are equal
+	bool operator==(const sNeighbour& other)
+	{
+		if (this->id == other.id)
+			return true;
+		else 
+			return false;
+	}
 };
 
 struct sFastestPath

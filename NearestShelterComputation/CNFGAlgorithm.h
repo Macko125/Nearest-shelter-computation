@@ -16,13 +16,17 @@ class CNFGAlgorithm
 public:
 	void readDataFromFile (string filename);
 	//void dijkstra (int root, int target);
-	void dijkstra();
+	void dijkstra(vector <int> root_vertices, map <int, NFG_Vertex> *nfg, bool recalculation = false);
 	void deleteMatrix();
 	void displayMatrix();
-	void DNVRF(int vim_id, set<int> *Rim, set <int> *Dim);
+	void initDijkstra();
+	void displayPath(int vertex_id);
+	void damageVertex(int vim);
 	CNFGAlgorithm();
 	~CNFGAlgorithm();
 private:
+	void DNVRF(int vim_id, set<int> *Rim, set <int> *Dim);
+	void damageRangeReconstruction(set<int> *Rim, set <int> *Dim);
 	std::map <int, NFG_Vertex> m_NFG;
 	int **m_adjMatrix;
 	int m_matrixSize;

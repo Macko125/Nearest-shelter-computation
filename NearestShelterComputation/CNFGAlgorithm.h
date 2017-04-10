@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <set>
+#include <algorithm>
 #include "NFGHeader.h"
 using namespace std;
 
@@ -28,7 +29,7 @@ public:
 private:
 	void DNVRF(int vim_id, set<int> *Rim, set <int> *Dim);
 	void damageRangeReconstruction(set<int> *Rim, set <int> *Dim);
-	std::map <int, NFG_Vertex> m_NFG;
+	map <int, NFG_Vertex> m_NFG;
 	int **m_adjMatrix;
 	int m_matrixSize;
 	vector <int> rootVertices;

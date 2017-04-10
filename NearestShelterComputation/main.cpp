@@ -19,7 +19,7 @@ int main()
 	}
 	algo.damageVertex(vim-1);
 	cout << "enter last vertex to display" << endl;
-	while (vert < algo.getMatrixSize())
+	while (vert < algo.getMatrixSize() + 1)
 	{
 		cin >> vert;
 		algo.displayPath(vert-1);

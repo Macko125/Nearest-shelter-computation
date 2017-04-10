@@ -2,12 +2,12 @@
 
 CNFGAlgorithm::CNFGAlgorithm()
 {
-	m_adjMatrix = nullptr;
+	m_adjMatrix = NULL;
 	m_matrixSize = 0;
 }
 CNFGAlgorithm::~CNFGAlgorithm() 
 {
-	if (m_adjMatrix != nullptr)
+	if (m_adjMatrix != NULL)
 	{
 		for (int i = 0; i < m_matrixSize; i++)
 			delete m_adjMatrix[i];
@@ -17,7 +17,7 @@ CNFGAlgorithm::~CNFGAlgorithm()
 
 void CNFGAlgorithm::deleteMatrix()
 {
-	if (m_adjMatrix != nullptr)
+	if (m_adjMatrix != NULL)
 	{
 		for (int i = 0; i < m_matrixSize; i++)
 			delete m_adjMatrix[i];
@@ -40,7 +40,7 @@ void CNFGAlgorithm::displayMatrix()
 void CNFGAlgorithm::readDataFromFile(string filename)
 {
 	ifstream file;
-	file.open(filename);
+	file.open(filename.c_str());
 	if (!file.is_open())
 	{
 		cout << "error opening file" << endl;
@@ -96,11 +96,11 @@ void CNFGAlgorithm::readDataFromFile(string filename)
 			rootVertices.push_back(strtol(temp.c_str(), NULL, 10));
 	}
 
-	for (auto root_id : rootVertices)
+	for (vector<int>::iterator root_id = rootVertices.begin(); root_id != rootVertices.end(); ++root_id)
 	{
-		m_NFG[root_id].type = true;
-		m_NFG[root_id].fastest_path.path_cost = 0;
-		m_NFG[root_id].fastest_path.out_vertex = root_id;
+		m_NFG[*root_id].type = true;
+		m_NFG[*root_id].fastest_path.path_cost = 0;
+		m_NFG[*root_id].fastest_path.out_vertex = *root_id;
 	}
 	file.close();
 }
@@ -111,40 +111,40 @@ void CNFGAlgorithm::dijkstra(vector <int> root_vertices, map <int, NFG_Vertex> *
 	map <int, NFG_Vertex> nfg_map;
 	NFG_Vertex vert;
 	nfg_map = *nfg;
-	for (auto root_id : root_vertices)
+	for (vector<int>::iterator root_id = root_vertices.begin(); root_id != root_vertices.end(); ++root_id)
 	{
 		while (!nfg_map.empty())
 		{
 			int min = max_path_cost + 1;
 			int id = -1;
-			for (auto v : *nfg) // find vertex with lowest cost
+			for (std::map<int, NFG_Vertex>::iterator v = (*nfg).begin(); v != (*nfg).end(); ++v) // find vertex with lowest cost
 			{
-				if (v.second.fastest_path.path_cost < min && (nfg_map.find(v.second.ID) != nfg_map.end()))
+				if ((*v).second.fastest_path.path_cost < min && (nfg_map.find((*v).second.ID) != nfg_map.end()))
 				{
-					id = v.second.ID;
-					min = v.second.fastest_path.path_cost;
+					id = (*v).second.ID;
+					min = (*v).second.fastest_path.path_cost;
 				}    // Node with the least distance will be selected first		remove u from Q
 			}
 			vert = (*nfg)[id];
 			nfg_map.erase(id);
-	
-			for (auto neighbour : vert.neighbour)
+
+			for (vector <sNeighbour>::iterator neighbour = vert.neighbour.begin(); neighbour != vert.neighbour.end(); ++neighbour)
 			{
-				int alt = vert.fastest_path.path_cost + neighbour.edge_cost;
-				if (nfg->find(neighbour.id) == (*nfg).end())
+				int alt = vert.fastest_path.path_cost + neighbour->edge_cost;
+				if (nfg->find(neighbour->id) == (*nfg).end())
 					continue;
 
-				if (alt < (*nfg)[neighbour.id].fastest_path.path_cost)
+				if (alt < (*nfg)[neighbour->id].fastest_path.path_cost)
 				{
-					(*nfg)[neighbour.id].fastest_path.path_cost = alt;
-					(*nfg)[neighbour.id].fastest_path.out_vertex = id;
-					(*nfg)[id].fastest_path.in_vertices.push_back(neighbour.id);
+					(*nfg)[neighbour->id].fastest_path.path_cost = alt;
+					(*nfg)[neighbour->id].fastest_path.out_vertex = id;
+					(*nfg)[id].fastest_path.in_vertices.push_back(neighbour->id);
 					if (!recalculation)
-						(*nfg)[id].fastest_path.root_id = root_id;
+						(*nfg)[id].fastest_path.root_id = *root_id;
 					else
-						(*nfg)[id].fastest_path.root_id = (*nfg)[root_id].fastest_path.root_id;
-					if (id == root_id)
-						(*nfg)[root_id].fastest_path.in_vertices.push_back(neighbour.id);
+						(*nfg)[id].fastest_path.root_id = (*nfg)[*root_id].fastest_path.root_id;
+					if (id == *root_id)
+						(*nfg)[*root_id].fastest_path.in_vertices.push_back(neighbour->id);
 				}
 			}
 		}
@@ -166,35 +166,35 @@ void CNFGAlgorithm::DNVRF(int vim_id, set<int> *Rim, set <int> *Dim)
 	{
 		vq = queue.back();
 		queue.pop_back();
-		for (auto vp : m_NFG[vq].neighbour)
+		for (vector<sNeighbour>::iterator vp = m_NFG[vq].neighbour.begin(); vp != m_NFG[vq].neighbour.end(); ++vp)
 		{
-			if (find(m_NFG[vq].fastest_path.in_vertices.begin(), m_NFG[vq].fastest_path.in_vertices.end(), vp.id)
+			if (find(m_NFG[vq].fastest_path.in_vertices.begin(), m_NFG[vq].fastest_path.in_vertices.end(), vp->id)
 				!= m_NFG[vq].fastest_path.in_vertices.end())
 			{
-				queue.push_back(vp.id);
-				Dim->insert(vp.id);
+				queue.push_back(vp->id);
+				Dim->insert(vp->id);
 			}
-			else if (vp.id != m_NFG[vq].fastest_path.out_vertex)
+			else if (vp->id != m_NFG[vq].fastest_path.out_vertex)
 			{
-				Rim->insert(vp.id);
+				Rim->insert(vp->id);
 			}
 		}
 	}
-	for (auto iter : (*Dim))
+	for (set<int>::iterator iter = Dim->begin(); iter != Dim->end(); ++iter)
 	{
-		int id = iter;
+		int id = *iter;
 		if (Rim->find(id) != Rim->end())
 		{
 			Rim->erase(id);
 		}
 	}
 	// delete connection between damaged vertex and neighbours
-	for (auto vertex : m_NFG)
+	for (map <int, NFG_Vertex>::iterator vertex = m_NFG.begin(); vertex != m_NFG.end(); ++vertex)
 	{
 		sNeighbour temp(vim_id, max_path_cost);
-		vector <sNeighbour>::iterator iter = find(vertex.second.neighbour.begin(), vertex.second.neighbour.end(), temp);
-		if (iter != vertex.second.neighbour.end())
-			vertex.second.neighbour.erase(iter);
+		vector <sNeighbour>::iterator iter = find(vertex->second.neighbour.begin(), vertex->second.neighbour.end(), temp);
+		if (iter != vertex->second.neighbour.end())
+			vertex->second.neighbour.erase(iter);
 	}
 	m_NFG[vim_id].neighbour.clear();
 }
@@ -205,27 +205,28 @@ void CNFGAlgorithm::damageRangeReconstruction(set<int> *Rim, set <int> *Dim)
 	//roots - R;
 	//dijkstra on D map
 	map <int, NFG_Vertex> D_map;
-	for (auto vertex : *Dim)
+	for (set<int>::iterator vertex = Dim->begin(); vertex != Dim->end(); ++vertex)
 	{
-		D_map[vertex] = m_NFG[vertex];
-		D_map[vertex].fastest_path.in_vertices.clear();
+		D_map[*vertex] = m_NFG[*vertex];
+		D_map[*vertex].fastest_path.in_vertices.clear();
 		//D_map[vertex].fastest_path.out_vertex = 0;
-		D_map[vertex].fastest_path.path_cost = max_path_cost;
-		D_map[vertex].fastest_path.root_id = 0;
+		if (find(rootVertices.begin(), rootVertices.end(), *vertex) == rootVertices.end())
+			D_map[*vertex].fastest_path.path_cost = max_path_cost;
+		D_map[*vertex].fastest_path.root_id = 0;
 	}
 
 	vector <int> root_ids;
-	for (auto id : *Rim)
+	for (set<int>::iterator id = Rim->begin(); id != Rim->end(); ++id)
 	{
-		root_ids.push_back(id);
-		D_map[id] = m_NFG[id];
+		root_ids.push_back(*id);
+		D_map[*id] = m_NFG[*id];
 	}
 
 	dijkstra(root_ids, &D_map, true);
 
-	for (auto id : D_map)
+	for (map<int, NFG_Vertex>::iterator id = D_map.begin(); id != D_map.end(); ++id)
 	{
-		m_NFG[id.first] = id.second;
+		m_NFG[id->first] = id->second;
 	}
 }
 
@@ -239,7 +240,7 @@ void CNFGAlgorithm::displayPath(int vertex_id)
 	cout << "vertex number: " << (vertex_id+1) << " cost: " << m_NFG[vertex_id].fastest_path.path_cost << endl;
 	cout << "path : " << endl;
 	int id = m_NFG[vertex_id].fastest_path.out_vertex;
-	while (m_NFG[id].fastest_path.path_cost > 0)
+	while (m_NFG[id].fastest_path.path_cost > 0 && m_NFG[id].fastest_path.path_cost != max_path_cost)
 	{
 		cout << "vertex: " << (id +1) << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
 		id = m_NFG[id].fastest_path.out_vertex;

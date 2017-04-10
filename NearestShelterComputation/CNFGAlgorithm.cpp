@@ -92,7 +92,7 @@ void CNFGAlgorithm::readDataFromFile(string filename)
 	while (!file.eof())
 	{
 		getline(file, temp, ';');
-		if (isdigit(temp[temp.length() - 1]))
+		if (temp.length() > 0 && isdigit(temp[temp.length() - 1]))
 			rootVertices.push_back(strtol(temp.c_str(), NULL, 10));
 	}
 
@@ -196,6 +196,7 @@ void CNFGAlgorithm::DNVRF(int vim_id, set<int> *Rim, set <int> *Dim)
 		if (iter != vertex.second.neighbour.end())
 			vertex.second.neighbour.erase(iter);
 	}
+	m_NFG[vim_id].neighbour.clear();
 }
 
 void CNFGAlgorithm::damageRangeReconstruction(set<int> *Rim, set <int> *Dim)
@@ -232,18 +233,18 @@ void CNFGAlgorithm::displayPath(int vertex_id)
 {
 	if (m_NFG.find(vertex_id) == m_NFG.end())
 	{
-		cout << "vertex number " << vertex_id << " not found" << endl;
+		cout << "vertex number " << (vertex_id + 1) << " not found" << endl;
 		return;
 	}
-	cout << "vertex number: " << vertex_id << " cost: " << m_NFG[vertex_id].fastest_path.path_cost << endl;
+	cout << "vertex number: " << (vertex_id+1) << " cost: " << m_NFG[vertex_id].fastest_path.path_cost << endl;
 	cout << "path : " << endl;
 	int id = m_NFG[vertex_id].fastest_path.out_vertex;
 	while (m_NFG[id].fastest_path.path_cost > 0)
 	{
-		cout << "vertex: " << id << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
+		cout << "vertex: " << (id +1) << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
 		id = m_NFG[id].fastest_path.out_vertex;
 	}
-	cout << "target " << id << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
+	cout << "target " << (id + 1) << " remaining cost: " << m_NFG[id].fastest_path.path_cost << endl;
 }
 void CNFGAlgorithm::damageVertex(int vim)
 {

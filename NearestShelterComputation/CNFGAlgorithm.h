@@ -22,6 +22,7 @@ public:
 	void initDijkstra();
 	void displayPath(int vertex_id);
 	void damageVertex(int vim);
+	int getMatrixSize() 	{return m_matrixSize;};
 	CNFGAlgorithm();
 	~CNFGAlgorithm();
 private:
